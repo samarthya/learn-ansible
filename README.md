@@ -1298,3 +1298,7 @@ localhost | SUCCESS => {
 ```bash
 ssh-copy-od <remote machine>
 ```
+
+# Glossary
+
+We define our plays using the word tasks with all modules we need as part of our playbook.
