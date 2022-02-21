@@ -1302,3 +1302,61 @@ ssh-copy-od <remote machine>
 # Glossary
 
 We define our plays using the word tasks with all modules we need as part of our playbook.
+
+# BECOME
+
+## With `become_method: sudo`
+
+```bash
+ansible-playbook -i hosts webserver-playbook.yaml  --ask-become
+BECOME password: 
+[WARNING]: A duplicate localhost-like entry was found (127.0.0.1). First found localhost was
+localhost
+
+PLAY [webserver] ****************************************************************************
+
+TASK [Gathering Facts] **********************************************************************
+[WARNING]: Platform linux on host 127.0.0.1 is using the discovered Python interpreter at
+/usr/bin/python3.9, but future installation of another Python interpreter could change the
+meaning of that path. See https://docs.ansible.com/ansible-
+core/2.12/reference_appendices/interpreter_discovery.html for more information.
+ok: [127.0.0.1]
+
+TASK [ensure apache is installed and up to date] ********************************************
+
+changed: [127.0.0.1]
+
+TASK [write the apache config file] *********************************************************
+ok: [127.0.0.1]
+
+TASK [apache is running (and enable it at boot)] ********************************************
+ok: [127.0.0.1]
+
+PLAY RECAP **********************************************************************************
+127.0.0.1                  : ok=4    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+```
+
+## With `become_method: su`
+
+```bash
+saurabh@samarthya-pop:~/sourcebox/ansible$ ansible-playbook -i hosts webserver-playbook.yaml --ask-become -K
+BECOME password: 
+[WARNING]: A duplicate localhost-like entry was found (127.0.0.1). First found localhost was
+localhost
+
+PLAY [webserver] ****************************************************************************
+
+TASK [Gathering Facts] **********************************************************************
+[WARNING]: Platform linux on host 127.0.0.1 is using the discovered Python interpreter at
+/usr/bin/python3.9, but future installation of another Python interpreter could change the
+meaning of that path. See https://docs.ansible.com/ansible-
+core/2.12/reference_appendices/interpreter_discovery.html for more information.
+ok: [127.0.0.1]
+
+TASK [ensure apache is installed and up to date] ********************************************
+fatal: [127.0.0.1]: FAILED! => {"msg": "Incorrect su password"}
+
+PLAY RECAP **********************************************************************************
+127.0.0.1                  : ok=1    changed=0    unreachable=0    failed=1    skipped=0    rescued=0    ignored=0 
+```

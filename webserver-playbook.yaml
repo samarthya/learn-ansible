@@ -1,9 +1,10 @@
 ---
-# No privledge user so should fail
 - hosts: webserver
   tasks:
     - name: ensure apache is installed and up to date
       apt: name=apache2 state=latest
+      become: yes
+      become_method: sudo
     - name: write the apache config file
       copy: src=000-default.conf dest=/etc/apache2/sites-available/000-default.conf
       notify:
@@ -13,3 +14,7 @@
   handlers:
   - name: restart apache2
     service: name=apache2 state=restarted
+  
+  # su and sudo both elevate privileges to the current user
+  # The main differene is `su` requries password of the target account and
+  # `sudo` needs password of the current user
