@@ -1,15 +1,15 @@
 ---
-# rder can be set as inventory, reverse_inventory, sorted, reverse_sorted, shuffle
+# No privledge user so should fail
 - hosts: webserver
-  remote_user: root
-  become: yes
-  become_method: su
   tasks:
-    - name: ensure tomcat9 is installed and up to date
-      apt: name=tomcat9 state=latest
-
-    - name: tomcat9 is running (and enable it at boot)
-      service: name=tomcat9 state=started enabled=yes
+    - name: ensure apache is installed and up to date
+      apt: name=apache2 state=latest
+    - name: write the apache config file
+      copy: src=000-default.conf dest=/etc/apache2/sites-available/000-default.conf
+      notify:
+      - restart apache2
+    - name: apache is running (and enable it at boot)
+      service: name=apache2 state=started enabled=yes
   handlers:
-  - name: restart tomcat9
-    service: name=tomcat9 state=restarted
+  - name: restart apache2
+    service: name=apache2 state=restarted
