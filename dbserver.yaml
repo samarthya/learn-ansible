@@ -1,0 +1,42 @@
+---
+- hosts: mysql
+  vars: 
+    mysql_root_password: password
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: install mysql and python-mysqldb
+      apt: name={{ item }} update_cache=yes cache_valid_time=3600 state=present
+      with_items:
+        - python3-mysqldb
+        - mysql-server
+    - name: start up the mysql service
+      shell: "service mysql start"
+    - name: ensure mysql is enabled to run on startup
+      service: name=mysql state=started enabled=true
+    - name: update the mysql root password for all the root accounts
+      mysql_user:
+        name: root
+        login_user: root
+        host: localhost
+        state: present
+        password: "{{ mysql_root_password }}"
+        login_password: "{{ mysql_root_password }}"
+        priv: "*.*:ALL,GRANT"
+    - name: create a new DB
+      mysql_db: name=testdb state=present login_user=root login_password="{{ mysql_root_password }}"
+    - name: add sample data to the database
+      copy: src=dump.sql dest=/tmp/dump.sql
+    - name: insert sample data to the database
+      mysql_db: name=testdb state=import target=/tmp/dump.sql login_user=root login_password="{{ mysql_root_password }}"
+
+
+############
+# Without the SUDO user it should fail
+# TASK [install mysql and python-mysqldb] *****************************************************
+# failed: [db.samarthya.me] (item=python3-mysqldb) => {"ansible_loop_var": "item", "cache_update_time": 1645515656, "cache_updated": false, "changed": false, "item": "python3-mysqldb", "msg": "'/usr/bin/apt-get -y -o \"Dpkg::Options::=--force-confdef\" -o \"Dpkg::Options::=--force-confold\"       install 'python3-mysqldb'' failed: E: Could not open lock file /var/lib/dpkg/lock-frontend - open (13: Permission denied)\nE: Unable to acquire the dpkg frontend lock (/var/lib/dpkg/lock-frontend), are you root?\n", "rc": 100, "stderr": "E: Could not open lock file /var/lib/dpkg/lock-frontend - open (13: Permission denied)\nE: Unable to acquire the dpkg frontend lock (/var/lib/dpkg/lock-frontend), are you root?\n", "stderr_lines": ["E: Could not open lock file /var/lib/dpkg/lock-frontend - open (13: Permission denied)", "E: Unable to acquire the dpkg frontend lock (/var/lib/dpkg/lock-frontend), are you root?"], "stdout": "", "stdout_lines": []}
+# ok: [db.samarthya.me
+## Using `become: yes` and `become_method: sudo`
+# TASK [install mysql and python-mysqldb] *****************************************************
+# changed: [db.samarthya.me] => (item=python3-mysqldb)
+# ok: [db.samarthya.me] => (item=mysql-server)
