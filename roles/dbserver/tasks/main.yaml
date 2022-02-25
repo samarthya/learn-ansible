@@ -1,0 +1,25 @@
+---
+- name: install mysql and python-mysqldb
+  apt: name={{ item }} update_cache=yes cache_valid_time=3600 state=present
+  with_items:
+    - python3-mysqldb
+    - mysql-server
+- name: start up the mysql service
+  shell: "service mysql start"
+- name: ensure mysql is enabled to run on startup
+  service: name=mysql state=started enabled=true
+- name: update the mysql root password for all the root accounts
+  mysql_user:
+    name: root
+    login_user: root
+    host: localhost
+    state: present
+    password: "{{ mysql_root_password }}"
+    login_password: "{{ mysql_root_password }}"
+    priv: "*.*:ALL,GRANT"
+- name: create a new DB
+  mysql_db: name=testdb state=present login_user=root login_password="{{ mysql_root_password }}"
+- name: add sample data to the database
+  copy: src=dump.sql dest=/tmp/dump.sql
+- name: insert sample data to the database
+  mysql_db: name=testdb state=import target=/tmp/dump.sql login_user=root login_password="{{ mysql_root_password }}"
